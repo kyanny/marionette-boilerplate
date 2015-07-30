@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+
+proj = ARGV[0]
+if proj.nil?
+  puts <<USAGE
+Usage:
+  $ #{File.basename $0} PROJECT_NAME
+USAGE
+  exit!
+end
+
+FileUtils.mkdir_p proj
+Dir.chdir proj
+
+File.write 'index.html', <<HTML
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="app.css">
+    <script src="//code.jquery.com/jquery-2.1.4.js"></script>
+    <script src="//underscorejs.org/underscore.js"></script>
+    <script src="//backbonejs.org/backbone.js"></script>
+    <script src="//marionettejs.com/downloads/backbone.marionette.js"></script>
+    <script src="app.js"></script>
+  </head>
+  <body>
+  </body>
+</html>
+HTML
+
+File.write 'app.css', <<CSS
+#main {
+  width: 600px;
+  height: 200px;
+  border: 1px solid #000;
+  background-color: cyan;
+}
+CSS
+
+File.write 'app.js', <<JS
+var RootView = Marionette.LayoutView.extend({
+  el: 'body',
+  template: _.template('<h1>Hello, world!</h1><div id="main"></div>')
+});
+
+var App = new Marionette.Application();
+
+App.on('start', function(options) {
+  console.log('started');
+
+  this.rootView = new RootView();
+  this.rootView.render();
+});
+
+$(function(){
+  App.start();
+});
+JS
+
+File.write 'run', <<RUN
+#!/bin/sh
+python -m SimpleHTTPServer 8080
+RUN
+system "chmod +x run"
+
+puts <<DONE
+  $ cd #{proj}
+  $ ./run
+  $ open localhost:8080
+DONE
